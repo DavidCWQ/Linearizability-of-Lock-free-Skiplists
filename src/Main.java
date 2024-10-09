@@ -6,10 +6,10 @@ import java.util.Random;
 public class Main {
 
         public static void main(String [] args) {
-                run(args);
+                run(args, true);
         }
 
-        public static int[] run(String [] args) {
+        public static double[] run(String [] args, boolean display) {
                 // Number of threads to use
                 int threads = Integer.parseInt(args[0]);
 
@@ -57,22 +57,31 @@ public class Main {
                 for (int i = 0; i < warmups; ++i) {
                         long time = Experiment.run(threads, opsPerThread, set, opsDistribution, valuesDistribution);
                         int discrepancy = Log.validate(set.getLog());
-                        System.err.println("Warmup time: " + time);
-                        System.err.println("Warmup discrepancy: " + discrepancy);
+                        if (display) {
+                                System.err.println("Warmup time: " + time);
+                                System.err.println("Warmup discrepancy: " + discrepancy);
+                        }
                 }
 
-                int totalTime = 0, totalDiff = 0;
+                double totalTime = 0, totalDiff = 0;
 
                 for (int i = 0; i < measurements; ++i) {
                         long time = Experiment.run(threads, opsPerThread, set, opsDistribution, valuesDistribution);
                         int discrepancy = Log.validate(set.getLog());
-                        System.err.println("Measurement time: " + time);
-                        System.err.println("Measurement discrepancy: " + discrepancy);
-                        totalTime += (int) time;
+                        if (display) {
+                                System.err.println("Measurement time: " + time);
+                                System.err.println("Measurement discrepancy: " + discrepancy);
+                        }
+                        totalTime += (double) time;
                         totalDiff += discrepancy;
                 }
 
-                return new int[]{totalTime/measurements, totalDiff/measurements}; // Average value
+                double avgTime = totalTime/measurements, avgDiff = totalDiff/measurements;
+
+                System.err.println("Measurement time(Average): " + avgTime);
+                System.err.println("Measurement discrepancy(Average): " + avgDiff);
+
+                return new double[]{avgTime, avgDiff}; // Average value
         }
 
         public static Distribution getDistribution(String name, int maxValue) {
