@@ -6,6 +6,10 @@ import java.util.Random;
 public class Main {
 
         public static void main(String [] args) {
+                run(args);
+        }
+
+        public static int[] run(String [] args) {
                 // Number of threads to use
                 int threads = Integer.parseInt(args[0]);
 
@@ -20,14 +24,14 @@ public class Main {
 
                 // Distribution of adds/removes/contains
                 int[] ops = Arrays.stream(args[4].split(":"))
-                        .mapToInt(v -> Integer.parseInt(v)).toArray();
-                
+                        .mapToInt(Integer::parseInt).toArray();
+
                 // Number of operations executed per thread.
                 int opsPerThread = Integer.parseInt(args[5]);
 
                 // Warm up rounds
                 int warmups = Integer.parseInt(args[6]);
-                
+
                 // Measurement rounds
                 int measurements = Integer.parseInt(args[7]);
 
@@ -57,12 +61,18 @@ public class Main {
                         System.err.println("Warmup discrepancy: " + discrepancy);
                 }
 
+                int totalTime = 0, totalDiff = 0;
+
                 for (int i = 0; i < measurements; ++i) {
                         long time = Experiment.run(threads, opsPerThread, set, opsDistribution, valuesDistribution);
                         int discrepancy = Log.validate(set.getLog());
                         System.err.println("Measurement time: " + time);
                         System.err.println("Measurement discrepancy: " + discrepancy);
+                        totalTime += (int) time;
+                        totalDiff += discrepancy;
                 }
+
+                return new int[]{totalTime/measurements, totalDiff/measurements}; // Average value
         }
 
         public static Distribution getDistribution(String name, int maxValue) {
@@ -79,7 +89,7 @@ public class Main {
         public static LockFreeSet<Integer> getSet(String name, int threads) {
                 switch (name) {
                 case "Default": 
-                        return new LockFreeSkipList();
+                        return new LockFreeSkipList<>();
                 case "Locked":
                         // TODO: Add your own set
                 case "LocalLog":
@@ -91,3 +101,5 @@ public class Main {
                 }
         }
 }
+
+// java Main 2 Default Normal 4096 1:1:8 100000 20 50
