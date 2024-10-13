@@ -1,12 +1,16 @@
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.atomic.AtomicMarkableReference;
 
 public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFreeSet<T> {
         /* Number of levels */
         private static final int MAX_LEVEL = 16;
-
+        private static final ReentrantLock lock = new ReentrantLock(); // For time sampling
         private final Node<T> head = new Node<T>();
         private final Node<T> tail = new Node<T>();
+        private final List<Log.Entry> logs = new ArrayList<>(); // For logging LP
 
         public LockFreeSkipListLocked() {
                 for (int i = 0; i < head.next.length; i++) {
@@ -187,8 +191,13 @@ retry:
         }
 
         public Log.Entry[] getLog() {
-                // This should fetch the log from the skiplist.
-                return null;
+                // TODO: This should fetch the log from the skiplist.
+                lock.lock();
+                try {
+                        return logs.toArray(new Log.Entry[0]);
+                } finally {
+                        lock.unlock();
+                }
         }
 
         public void reset() {
@@ -196,6 +205,12 @@ retry:
                         head.next[i] = new AtomicMarkableReference<LockFreeSkipListLocked.Node<T>>(tail, false);
                 }
                 // TODO: Clear the log if you have one.
+                lock.lock();
+                try {
+                        logs.clear();
+                } finally {
+                        lock.unlock();
+                }
         }
 }
 
