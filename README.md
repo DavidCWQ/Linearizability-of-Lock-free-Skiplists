@@ -113,7 +113,7 @@ If the discrepancy count is 0, then the log is sequentially consistant.
 
 ### 2.3. Locked time sampling
 
-It is not time to capture the linearization points.
+It is now time to capture the linearization points.
 Use a lock around the linearization point and the time sampling, for instance:
 ```
 lock.acquire();
