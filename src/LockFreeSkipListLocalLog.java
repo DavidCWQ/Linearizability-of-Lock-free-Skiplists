@@ -214,10 +214,11 @@ retry:
         }
 
         // Helper method to log actions
-        private void logAction(Log.Method method, int key, boolean result, long time) {
+        private void logAction(Log.Method method, int key, boolean result) {
                 lock.lock();
                 try {
-                        logs.add(new Log.Entry(method, key, result, time));
+                        long timestamp = System.nanoTime();
+                        logs.add(new Log.Entry(method, key, result, timestamp));
                 } finally {
                         lock.unlock();
                 }
