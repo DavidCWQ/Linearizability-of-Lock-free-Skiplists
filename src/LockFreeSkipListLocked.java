@@ -67,7 +67,9 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                 while (true) {
                         boolean found = find(x, preds, succs);
                         if (found) {
-                                return false;
+                                // TODO: Lock around the unsuccessful linearization point of add
+                                logAction(Log.Method.ADD, x.hashCode(), false);
+                                return false; // (duplicate element)
                         } else {
                                 Node<T> newNode = new Node(x, topLevel);
                                 for (int level = bottomLevel; level <= topLevel; level++) {
@@ -79,6 +81,8 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                 if (!pred.next[bottomLevel].compareAndSet(succ, newNode, false, false)) {
                                         continue;
                                 }
+                                // TODO: Lock around the successful linearization point of add
+                                logAction(Log.Method.ADD, x.hashCode(),true);
                                 for (int level = bottomLevel + 1; level <= topLevel; level++) {
                                         while (true) {
                                                 pred = preds[level];
@@ -102,7 +106,9 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                 while (true) {
                         boolean found = find(x, preds, succs);
                         if (!found) {
-                                return false;
+                                // TODO: Lock around the unsuccessful linearization point of remove
+                                logAction(Log.Method.REMOVE, x.hashCode(), false);
+                                return false; // (node not found)
                         } else {
                                 Node<T> nodeToRemove = succs[bottomLevel];
                                 for (int level = nodeToRemove.topLevel; level >= bottomLevel+1; level --) {
@@ -119,10 +125,14 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                         boolean iMarkedIt = nodeToRemove.next[bottomLevel].compareAndSet(succ, succ, false, true);
                                         succ = succs[bottomLevel].next[bottomLevel].get(marked);
                                         if (iMarkedIt) {
+                                                // TODO: Lock around the successful linearization point of remove
+                                                logAction(Log.Method.REMOVE, x.hashCode(), true);
                                                 find(x, preds, succs);
                                                 return true;
                                         } else if (marked[0]) {
-                                                return false;
+                                                // TODO: Lock around the unsuccessful linearization point of remove
+                                                logAction(Log.Method.REMOVE, x.hashCode(), false);
+                                                return false; // (node already marked for removal)
                                         }
                                 }
                         }
@@ -152,7 +162,10 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                 }
                         }
                 }
-                return curr.value != null && x.compareTo(curr.value) == 0;
+                boolean result = curr.value != null && x.compareTo(curr.value) == 0;
+                // TODO: Lock around the linearization point of contains
+                logAction(Log.Method.CONTAINS, x.hashCode(), result);
+                return result;
         }
 
         private boolean find(T x, Node<T>[] preds, Node<T>[] succs) {
