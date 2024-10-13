@@ -1,16 +1,15 @@
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicMarkableReference;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class LockFreeSkipListGlobalLog<T extends Comparable<T>> implements LockFreeSet<T> {
         /* Number of levels */
         private static final int MAX_LEVEL = 16;
-        private static final ReentrantLock lock = new ReentrantLock(); // For time sampling
         private final Node<T> head = new Node<T>();
         private final Node<T> tail = new Node<T>();
-        private final List<Log.Entry> logs = new ArrayList<>(); // For logging LP
+        private static final LockFreeQueue<Log.Entry> logQueue = new LockFreeQueue<>();
+
 
         public LockFreeSkipListGlobalLog() {
                 for (int i = 0; i < head.next.length; i++) {
@@ -67,6 +66,8 @@ public class LockFreeSkipListGlobalLog<T extends Comparable<T>> implements LockF
                 while (true) {
                         boolean found = find(x, preds, succs);
                         if (found) {
+                                // TODO: Lock around the unsuccessful linearization point of add
+                                logAction(Log.Method.ADD, x.hashCode(), false);
                                 return false;
                         } else {
                                 Node<T> newNode = new Node(x, topLevel);
@@ -79,6 +80,8 @@ public class LockFreeSkipListGlobalLog<T extends Comparable<T>> implements LockF
                                 if (!pred.next[bottomLevel].compareAndSet(succ, newNode, false, false)) {
                                         continue;
                                 }
+                                // TODO: Lock around the successful linearization point of add
+                                logAction(Log.Method.ADD, x.hashCode(),true);
                                 for (int level = bottomLevel + 1; level <= topLevel; level++) {
                                         while (true) {
                                                 pred = preds[level];
@@ -102,6 +105,8 @@ public class LockFreeSkipListGlobalLog<T extends Comparable<T>> implements LockF
                 while (true) {
                         boolean found = find(x, preds, succs);
                         if (!found) {
+                                // TODO: Lock around the unsuccessful linearization point of remove
+                                logAction(Log.Method.REMOVE, x.hashCode(), false);
                                 return false;
                         } else {
                                 Node<T> nodeToRemove = succs[bottomLevel];
@@ -119,9 +124,13 @@ public class LockFreeSkipListGlobalLog<T extends Comparable<T>> implements LockF
                                         boolean iMarkedIt = nodeToRemove.next[bottomLevel].compareAndSet(succ, succ, false, true);
                                         succ = succs[bottomLevel].next[bottomLevel].get(marked);
                                         if (iMarkedIt) {
+                                                // TODO: Lock around the successful linearization point of remove
+                                                logAction(Log.Method.REMOVE, x.hashCode(), true);
                                                 find(x, preds, succs);
                                                 return true;
                                         } else if (marked[0]) {
+                                                // TODO: Lock around the unsuccessful linearization point of remove
+                                                logAction(Log.Method.REMOVE, x.hashCode(), false);
                                                 return false;
                                         }
                                 }
@@ -152,7 +161,10 @@ public class LockFreeSkipListGlobalLog<T extends Comparable<T>> implements LockF
                                 }
                         }
                 }
-                return curr.value != null && x.compareTo(curr.value) == 0;
+                boolean result = curr.value != null && x.compareTo(curr.value) == 0;
+                // TODO: Lock around the linearization point of contains
+                logAction(Log.Method.CONTAINS, x.hashCode(), result);
+                return result;
         }
 
         private boolean find(T x, Node<T>[] preds, Node<T>[] succs) {
@@ -192,12 +204,12 @@ retry:
 
         public Log.Entry[] getLog() {
                 // TODO: This should fetch the log from the skiplist.
-                lock.lock();
-                try {
-                        return logs.toArray(new Log.Entry[0]);
-                } finally {
-                        lock.unlock();
+                List<Log.Entry> globalLog = new ArrayList<>();
+                Log.Entry logEntry;
+                while ((logEntry = logQueue.dequeue()) != null) {
+                        globalLog.add(logEntry);
                 }
+                return globalLog.toArray(new Log.Entry[0]);
         }
 
         public void reset() {
@@ -205,23 +217,12 @@ retry:
                         head.next[i] = new AtomicMarkableReference<LockFreeSkipListGlobalLog.Node<T>>(tail, false);
                 }
                 // TODO: Clear the log if you have one.
-                lock.lock();
-                try {
-                        logs.clear();
-                } finally {
-                        lock.unlock();
-                }
+                logQueue.clear();
         }
 
         // Helper method to log actions
         private void logAction(Log.Method method, int key, boolean result) {
-                lock.lock();
-                try {
-                        long timestamp = System.nanoTime();
-                        logs.add(new Log.Entry(method, key, result, timestamp));
-                } finally {
-                        lock.unlock();
-                }
+                long timestamp = System.nanoTime();
+                logQueue.enqueue(new Log.Entry(method, key, result, timestamp));
         }
 }
-
