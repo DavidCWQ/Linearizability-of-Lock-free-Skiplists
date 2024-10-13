@@ -97,15 +97,19 @@ public class Main {
 
         public static LockFreeSet<Integer> getSet(String name, int threads) {
                 switch (name) {
-                case "Default": 
+                case "Default":
+                        // The default set
                         return new LockFreeSkipList<>();
                 case "Locked":
                         // TODO: Add your own set
+                        return new LockFreeSkipListLocked<>();
                 case "LocalLog":
                         // TODO: Add your own set
+                        return new LockFreeSkipListLocalLog<>();
                 case "GlobalLog":
                         // TODO: Add your own set
-                default: 
+                        return new LockFreeSkipListGlobalLog<>();
+                default:
                         return null;
                 }
         }
