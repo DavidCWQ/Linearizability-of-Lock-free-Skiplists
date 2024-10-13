@@ -1,4 +1,6 @@
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Comparator;
 
 public class Log {
         private Log() {
@@ -7,10 +9,14 @@ public class Log {
 
         public static int validate(Log.Entry[] log) {
 
+            // Initialization.
             int discrepancyCount = 0;
             HashSet<Integer> referenceSet = new HashSet<>();
 
-            // Iterate through each log entry and replay the operation on the HashSet.
+            // Sort the log based on the timestamp to order operations chronologically.
+            Arrays.sort(log, Comparator.comparingLong(entry -> entry.timestamp));
+
+            // Iterate through each log entry and replay the operations on the HashSet.
             for (Log.Entry entry : log) {
                 boolean resultFromSet = switch (entry.method) {
                     case ADD -> referenceSet.add(entry.arg);
