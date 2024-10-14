@@ -19,12 +19,12 @@ public class PDCPlot1 { // Thread vs Execution Time
         int[] balancedOps = {1, 1, 0};
 
         // Number of operations per thread
-        int opsPerThread = 10000;
+        int opsPerThread = 1000000;
 
         // Distribution to sample values
         String distribution = "Uniform";
         // String distribution = "Normal";
-        int maxValue = 1000;
+        int maxValue = 100000;
 
         // Warm-up and measurement rounds
         int warmups = 10;
