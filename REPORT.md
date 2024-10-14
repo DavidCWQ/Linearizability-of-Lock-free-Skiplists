@@ -18,6 +18,13 @@ Source file:
 - `src/Main.java` (Run on PDC)
 - `plots/PDCPlot1.java` (Run on PDC)
 
+![Normal Distribution](plots/plot1_normal.png)
+
+- Fig above is the Normal Distribution.
+- Fig below is the Uniform Distribution.
+
+![Uniform Distribution](plots/plot1_uniform.png)
+
 > Yes, they make sense.
 
 > Uniform distribution is expected to be faster. 
@@ -89,3 +96,19 @@ Source file:
 Source file:
 - `plots/PDCPlot1.java` (Run on PDC)
 - `plots/PDCPlot2.java` (Run on PDC)
+
+![](plots/plot1_LocalLog_Uniform.png)
+
+![](plots/plot2_LocalLog_Uniform.png)
+
+![](plots/plot1_LocalLog_Normal.png)
+
+![](plots/plot2_LocalLog_Normal.png)
+
+![](plots/plot1_GlobalLog_Uniform.png)
+
+![](plots/plot2_GlobalLog_Uniform.png)
+
+![](plots/plot1_GlobalLog_Normal.png)
+
+![](plots/plot2_GlobalLog_Normal.png)

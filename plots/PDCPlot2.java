@@ -19,12 +19,12 @@ public class PDCPlot2 { // Thread vs Avg Accuracy
         int[] balancedOps = {1, 1, 0};
 
         // Number of operations per thread
-        int opsPerThread = 1000000;
+        int opsPerThread = 10000;
 
         // Distribution to sample values
         String distribution = "Uniform";
         // String distribution = "Normal";
-        int maxValue = 100000;
+        int maxValue = 1000;
 
         // Warm-up and measurement rounds
         int warmups = 10;
@@ -54,7 +54,7 @@ public class PDCPlot2 { // Thread vs Avg Accuracy
             System.out.println("Running experiment with " + threads + " threads and " + operationDescription);
 
             // Prepare arguments for the experiment run
-            String setName = "Default";  // Using Default LockFreeSet
+            String setName = "GlobalLog";  // Using Different LockFreeSet
             String[] args = {
                     Integer.toString(threads),  // Number of threads
                     setName,                    // Set type
@@ -68,7 +68,7 @@ public class PDCPlot2 { // Thread vs Avg Accuracy
 
             // Run the experiment for warmups and measurements
             double[] results = Main.run(args, false);
-            AccuracyList.add(results[2]);
+            AccuracyList.add(results[1]);
         }
     }
 
@@ -79,9 +79,9 @@ public class PDCPlot2 { // Thread vs Avg Accuracy
         // Create the chart
         XYChart chart = new XYChartBuilder()
                 .width(800).height(600)
-                .title("Average Accuracy vs Threads")
+                .title("Discrepancy vs Threads")
                 .xAxisTitle("Threads")
-                .yAxisTitle("Rate(%)")
+                .yAxisTitle("Numbers")
                 .build();
 
         // Customize the chart

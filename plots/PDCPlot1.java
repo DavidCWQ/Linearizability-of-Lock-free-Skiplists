@@ -19,12 +19,12 @@ public class PDCPlot1 { // Thread vs Execution Time
         int[] balancedOps = {1, 1, 0};
 
         // Number of operations per thread
-        int opsPerThread = 1000000;
+        int opsPerThread = 10000;
 
         // Distribution to sample values
         String distribution = "Uniform";
         // String distribution = "Normal";
-        int maxValue = 100000;
+        int maxValue = 1000;
 
         // Warm-up and measurement rounds
         int warmups = 10;
@@ -54,7 +54,7 @@ public class PDCPlot1 { // Thread vs Execution Time
             System.out.println("Running experiment with " + threads + " threads and " + operationDescription);
 
             // Prepare arguments for the experiment run
-            String setName = "Default";  // Using Default LockFreeSet
+            String setName = "GlobalLog";  // Using Default LockFreeSet
             String[] args = {
                     Integer.toString(threads),  // Number of threads
                     setName,                    // Set type
