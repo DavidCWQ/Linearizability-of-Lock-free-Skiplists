@@ -74,7 +74,7 @@ public class Main {
                         }
                         totalTime += (double) time;
                         totalDiff += discrepancy[0];
-                        totalRate += (double) discrepancy[0] /discrepancy[1]; // Accuracy rate
+                        totalRate += 1.0 - (double) discrepancy[0] /discrepancy[1]; // Accuracy rate
                 }
 
                 double avgTime = totalTime/measurements, avgDiff = totalDiff/measurements;
@@ -82,7 +82,7 @@ public class Main {
                 System.err.println("Measurement time(Average): " + avgTime);
                 System.err.println("Measurement discrepancy(Average): " + avgDiff);
 
-                double avgAccuracy = (1-totalRate)*100/measurements;
+                double avgAccuracy = totalRate*100/measurements;
                 System.err.println("Accuracy(Average): " + String.format("%.2f", avgAccuracy) + "%");
 
 
