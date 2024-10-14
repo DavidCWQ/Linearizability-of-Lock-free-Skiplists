@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class PDCPlot1 {
+public class PDCPlot1 { // Thread vs Execution Time
 
     public static void main(String[] args) {
         // Number of threads to test
@@ -31,17 +31,17 @@ public class PDCPlot1 {
         int measurements = 30;
 
         // Results storage
-        List<Double> uniformTimes = new ArrayList<>();
+        List<Double> unbalancedTimes = new ArrayList<>();
         List<Double> balancedTimes = new ArrayList<>();
 
         // Run experiments for both operation distributions
         runExperiments(threadCounts, "10% add, 10% remove, 80% contains",
-                unbalancedOps, opsPerThread, distribution, maxValue, warmups, measurements, uniformTimes);
+                unbalancedOps, opsPerThread, distribution, maxValue, warmups, measurements, unbalancedTimes);
         runExperiments(threadCounts, "50% add, 50% remove",
                 balancedOps, opsPerThread, distribution, maxValue, warmups, measurements, balancedTimes);
 
         // Plot the results using XChart
-        plotResults(threadCounts, uniformTimes, balancedTimes);
+        plotResults(threadCounts, balancedTimes, unbalancedTimes);
     }
 
     // Function to run experiments with different thread counts and operation distribution

@@ -31,17 +31,17 @@ public class PDCPlot2 { // Thread vs Avg Accuracy
         int measurements = 30;
 
         // Results storage
-        List<Double> uniformAccuracy = new ArrayList<>();
+        List<Double> unbalancedAccuracy = new ArrayList<>();
         List<Double> balancedAccuracy = new ArrayList<>();
 
         // Run experiments for both operation distributions
         runExperiments(threadCounts, "10% add, 10% remove, 80% contains",
-                unbalancedOps, opsPerThread, distribution, maxValue, warmups, measurements, uniformAccuracy);
+                unbalancedOps, opsPerThread, distribution, maxValue, warmups, measurements, unbalancedAccuracy);
         runExperiments(threadCounts, "50% add, 50% remove",
                 balancedOps, opsPerThread, distribution, maxValue, warmups, measurements, balancedAccuracy);
 
         // Plot the results using XChart
-        plotResults(threadCounts, uniformAccuracy, balancedAccuracy);
+        plotResults(threadCounts, balancedAccuracy, unbalancedAccuracy);
     }
 
     // Function to run experiments with different thread counts and operation distribution
