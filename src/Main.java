@@ -74,7 +74,7 @@ public class Main {
                         }
                         totalTime += (double) time;
                         totalDiff += discrepancy[0];
-                        totalRate += discrepancy[1]; // Accuracy rate
+                        totalRate += (double) discrepancy[0] /discrepancy[1]; // Accuracy rate
                 }
 
                 double avgTime = totalTime/measurements, avgDiff = totalDiff/measurements;
