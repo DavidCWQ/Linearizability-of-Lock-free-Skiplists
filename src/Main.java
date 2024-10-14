@@ -56,30 +56,35 @@ public class Main {
 
                 for (int i = 0; i < warmups; ++i) {
                         long time = Experiment.run(threads, opsPerThread, set, opsDistribution, valuesDistribution);
-                        int discrepancy = Log.validate(set.getLog());
+                        int[] discrepancy = Log.validate(set.getLog());
                         if (display) {
                                 System.err.println("Warmup time: " + time);
-                                System.err.println("Warmup discrepancy: " + discrepancy);
+                                System.err.println("Warmup discrepancy: " + discrepancy[0]);
                         }
                 }
 
-                double totalTime = 0, totalDiff = 0;
+                double totalTime = 0, totalDiff = 0, totalRate = 0;
 
                 for (int i = 0; i < measurements; ++i) {
                         long time = Experiment.run(threads, opsPerThread, set, opsDistribution, valuesDistribution);
-                        int discrepancy = Log.validate(set.getLog());
+                        int[] discrepancy = Log.validate(set.getLog());
                         if (display) {
                                 System.err.println("Measurement time: " + time);
-                                System.err.println("Measurement discrepancy: " + discrepancy);
+                                System.err.println("Measurement discrepancy: " + discrepancy[0]);
                         }
                         totalTime += (double) time;
-                        totalDiff += discrepancy;
+                        totalDiff += discrepancy[0];
+                        totalRate += discrepancy[1]; // Accuracy rate
                 }
 
                 double avgTime = totalTime/measurements, avgDiff = totalDiff/measurements;
 
                 System.err.println("Measurement time(Average): " + avgTime);
                 System.err.println("Measurement discrepancy(Average): " + avgDiff);
+
+                double avgAccuracy = totalRate*100/measurements;
+                System.err.println("Accuracy(Average): " + String.format("%.2f", avgAccuracy) + "%");
+
 
                 return new double[]{avgTime, avgDiff}; // Average value
         }

@@ -7,7 +7,9 @@ public class Log {
                 // Do not implement
         }
 
-        public static int validate(Log.Entry[] log) {
+        public static int[] validate(Log.Entry[] log) {
+
+            if (log == null) return new int[]{0,1};
 
             // Initialization.
             int discrepancyCount = 0;
@@ -30,8 +32,8 @@ public class Log {
                 }
             }
 
-            // Return the total number of discrepancies found.
-            return discrepancyCount;
+            // Return the total number of discrepancies found & total logCounts
+            return new int[]{discrepancyCount, log.length};
         }
 
         // Log entry for linearization point.
