@@ -82,7 +82,7 @@ public class Main {
                 System.err.println("Measurement time(Average): " + avgTime);
                 System.err.println("Measurement discrepancy(Average): " + avgDiff);
 
-                double avgAccuracy = totalRate*100/measurements;
+                double avgAccuracy = (1-totalRate)*100/measurements;
                 System.err.println("Accuracy(Average): " + String.format("%.2f", avgAccuracy) + "%");
 
 
