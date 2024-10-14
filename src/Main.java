@@ -86,7 +86,7 @@ public class Main {
                 System.err.println("Accuracy(Average): " + String.format("%.2f", avgAccuracy) + "%");
 
 
-                return new double[]{avgTime, avgDiff}; // Average value
+                return new double[]{avgTime, avgDiff, avgAccuracy}; // Average value
         }
 
         public static Distribution getDistribution(String name, int maxValue) {
