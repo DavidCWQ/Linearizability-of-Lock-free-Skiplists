@@ -8,7 +8,7 @@
 
 I modified the measurement program as follows for testing.
 
-> java Main 2 Default Normal 4096 1:1:8 100000 20 50
+> java Main 2 Default Normal 1000 1:1:8 10000 5 10
 
 Operations with 50% add & 50% remove seem to be slower.
 
@@ -39,15 +39,28 @@ Source file:
 
 ## 2.1 Identify linearization points
 
-> Generally speaking, the locations of these points are around the successful or unsuccessful call.
+> Previously, I thought it would be like this:
+> > Generally speaking, the locations of these points are around the successful or unsuccessful call.
+>
+> > - `add()`: The linearization point is where the node is successfully inserted into the list
+> > with compareAndSet() or when it is determined that the node already exists.
+> > - `remove()`: The linearization point is where the node is marked logically deleted or
+> > when it is found that the node is already removed or doesn't exist.
+> > - `contains()`: The linearization point is when the element is found in the list or determined to not be present.
+>
+> > Well, if described in my own words, I would say that capture it "before the return".
 
-> - `add()`: The linearization point is where the node is successfully inserted into the list 
-> with compareAndSet() or when it is determined that the node already exists.
-> - `remove()`: The linearization point is where the node is marked logically deleted or 
-> when it is found that the node is already removed or doesn't exist.
-> - `contains()`: The linearization point is when the element is found in the list or determined to not be present.
-
-> Well, if described in my own words, I would say that capture it "before the return".
+> However, the truth should be like this:
+> > Indeed, there should be 6 linearization points (LP), but they shouldn't be around any line of code.
+> 
+> > - `add()`: The LP of a successful `add()` is at the first CAS operation (node linked at bottom level).
+> > The LP of an unsuccessful `add()` is exactly when `find()` returns `true` (already added).
+> > - `remove()`: The LP of a successful `remove()` is at the CAS operation where `iMarkedIt` returns true.
+> > The LP of an unsuccessful `remove()` is at the CAS operation where `iMarkedIt` returns false, 
+> > or exactly at the point that `find()` returns false (already removed).
+> > - `contains()`: The LP is at two lines of code `curr = pred.next[level].getReference();` when `curr` is set.
+> 
+> > Instead, they should be exactly on the CAS or at the moment when `curr` is changed.
 
 ## 2.2 Develop a validation method
 
@@ -56,6 +69,8 @@ Source file:
 - `src/log.java`
 
 > `Log.validate` is implemented with the help of `HashSet`.
+
+> The implementation is 100% correct (Approved by TA).
 
 ## 2.3. Locked time sampling
 

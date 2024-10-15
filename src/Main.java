@@ -120,4 +120,4 @@ public class Main {
         }
 }
 
-// java Main 2 Default Normal 4096 1:1:8 100000 20 50
+// java Main 2 Default Normal 1000 1:1:8 10000 5 10
