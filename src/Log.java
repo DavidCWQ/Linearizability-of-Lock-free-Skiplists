@@ -24,6 +24,7 @@ public class Log {
                     case ADD -> referenceSet.add(entry.arg);
                     case REMOVE -> referenceSet.remove(entry.arg);
                     case CONTAINS -> referenceSet.contains(entry.arg);
+                    default -> throw new RuntimeException("Error: Invalid entry.method in HashSet.");
                 };
 
                 // Check if the result from the set matches the expected result from the log entry.
@@ -51,6 +52,6 @@ public class Log {
         }
 
         public static enum Method {
-                ADD, REMOVE, CONTAINS
+                ADD, REMOVE, CONTAINS, EMPTY, FAKE_REMOVE
         }
 }

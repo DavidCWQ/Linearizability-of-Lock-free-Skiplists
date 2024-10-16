@@ -65,10 +65,8 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                 Node<T>[] preds = (Node<T>[]) new Node[MAX_LEVEL + 1];
                 Node<T>[] succs = (Node<T>[]) new Node[MAX_LEVEL + 1];
                 while (true) {
-                        boolean found = find(x, preds, succs);
+                        boolean found = find(x, preds, succs, Log.Method.ADD);
                         if (found) {
-                                // TODO: Lock around the unsuccessful linearization point of add
-                                logAction(Log.Method.ADD, x.hashCode(), false);
                                 return false; // (duplicate element)
                         } else {
                                 Node<T> newNode = new Node(x, topLevel);
@@ -78,18 +76,23 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                 }
                                 Node<T> pred = preds[bottomLevel];
                                 Node<T> succ = succs[bottomLevel];
-                                if (!pred.next[bottomLevel].compareAndSet(succ, newNode, false, false)) {
-                                        continue;
-                                }
+
                                 // TODO: Lock around the successful linearization point of add
-                                logAction(Log.Method.ADD, x.hashCode(),true);
+                                logActionStart();
+                                if (!pred.next[bottomLevel].compareAndSet(succ, newNode, false, false)) {
+                                        logActionStop(); continue;
+                                }
+                                else {
+                                        logAction(Log.Method.ADD, x.hashCode(),true);
+                                }
+
                                 for (int level = bottomLevel + 1; level <= topLevel; level++) {
                                         while (true) {
                                                 pred = preds[level];
                                                 succ = succs[level];
                                                 if (pred.next[level].compareAndSet(succ, newNode, false, false))
                                                         break;
-                                                find(x, preds, succs);
+                                                find(x, preds, succs, Log.Method.EMPTY);
                                         }
                                 }
                                 return true;
@@ -104,10 +107,8 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                 Node<T>[] succs = (Node<T>[]) new Node[MAX_LEVEL + 1];
                 Node<T> succ;
                 while (true) {
-                        boolean found = find(x, preds, succs);
+                        boolean found = find(x, preds, succs, Log.Method.REMOVE);
                         if (!found) {
-                                // TODO: Lock around the unsuccessful linearization point of remove
-                                logAction(Log.Method.REMOVE, x.hashCode(), false);
                                 return false; // (node not found)
                         } else {
                                 Node<T> nodeToRemove = succs[bottomLevel];
@@ -122,16 +123,23 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                 boolean[] marked = {false};
                                 succ = nodeToRemove.next[bottomLevel].get(marked);
                                 while (true) {
+                                        // TODO: Lock around the (un)successful linearization point of remove
+                                        logActionStart();
                                         boolean iMarkedIt = nodeToRemove.next[bottomLevel].compareAndSet(succ, succ, false, true);
+                                        if (iMarkedIt) {
+                                                logAction(Log.Method.REMOVE, x.hashCode(), true);
+                                        }
+                                        else if (marked[0]){
+                                                logAction(Log.Method.REMOVE, x.hashCode(), false);
+                                        }
+                                        else {
+                                                logActionStop();
+                                        }
                                         succ = succs[bottomLevel].next[bottomLevel].get(marked);
                                         if (iMarkedIt) {
-                                                // TODO: Lock around the successful linearization point of remove
-                                                logAction(Log.Method.REMOVE, x.hashCode(), true);
-                                                find(x, preds, succs);
+                                                find(x, preds, succs, Log.Method.EMPTY);
                                                 return true;
                                         } else if (marked[0]) {
-                                                // TODO: Lock around the unsuccessful linearization point of remove
-                                                logAction(Log.Method.REMOVE, x.hashCode(), false);
                                                 return false; // (node already marked for removal)
                                         }
                                 }
@@ -147,11 +155,11 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                 Node<T> curr = null;
                 Node<T> succ = null;
                 for (int level = MAX_LEVEL; level >= bottomLevel; level--) {
-                        curr = pred.next[level].getReference();
+                        curr = pred.next[level].getReference(); // Can be LP point
                         while (true) {
                                 succ = curr.next[level].get(marked);
                                 while (marked[0]) {
-                                        curr = succ;
+                                        curr = succ; // Can be LP point
                                         succ = curr.next[level].get(marked);
                                 }
                                 if (curr.value != null && x.compareTo(curr.value) < 0) {
@@ -162,13 +170,14 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                 }
                         }
                 }
-                boolean result = curr.value != null && x.compareTo(curr.value) == 0;
                 // TODO: Lock around the linearization point of contains
+                logActionStart();
+                boolean result = curr.value != null && x.compareTo(curr.value) == 0;
                 logAction(Log.Method.CONTAINS, x.hashCode(), result);
                 return result;
         }
 
-        private boolean find(T x, Node<T>[] preds, Node<T>[] succs) {
+        private boolean find(T x, Node<T>[] preds, Node<T>[] succs, Log.Method method) {
                 int bottomLevel = 0;
                 boolean[] marked = {false};
                 boolean snip;
@@ -179,13 +188,15 @@ retry:
                 while (true) {
                         pred = head;
                         for (int level = MAX_LEVEL; level >= bottomLevel; level--) {
-                                curr = pred.next[level].getReference();
+                                // TODO: Lock around the linearization point
+                                curr = pred.next[level].getReference(); // Can be LP point
                                 while (true) {
                                         succ = curr.next[level].get(marked);
                                         while (marked[0]) {
                                                 snip = pred.next[level].compareAndSet(curr, succ, false, false);
                                                 if (!snip) continue retry;
-                                                curr = succ;
+                                                // TODO: Lock around the linearization point
+                                                curr = succ; // Can be LP point
                                                 succ = curr.next[level].get(marked);
                                         }
                                         if (curr.value != null && x.compareTo(curr.value) < 0) {
@@ -194,6 +205,27 @@ retry:
                                         } else {
                                                 break;
                                         }
+                                }
+
+                                boolean isFound = curr.value != null && x.compareTo(curr.value) == 0;
+
+                                if (level == bottomLevel) {
+                                    if (isFound && method == Log.Method.ADD) {
+                                        logActionStart();
+                                        preds[level] = pred;
+                                        succs[level] = curr;
+                                        // TODO: Lock around the unsuccessful LP of add
+                                        logAction(Log.Method.ADD, x.hashCode(), false);
+                                        return true;
+                                    }
+                                    else if (!isFound && method == Log.Method.REMOVE) {
+                                        logActionStart();
+                                        preds[level] = pred;
+                                        succs[level] = curr;
+                                        // TODO: Lock around the unsuccessful LP of remove
+                                        logAction(Log.Method.REMOVE, x.hashCode(), false);
+                                        return false;
+                                    }
                                 }
 
                                 preds[level] = pred;
@@ -227,8 +259,15 @@ retry:
         }
 
         // Helper method to log actions
-        private void logAction(Log.Method method, int key, boolean result) {
+        private void logActionStart() {
                 lock.lock();
+        }
+
+        private void logActionStop() {
+                lock.unlock();
+        }
+
+        private void logAction(Log.Method method, int key, boolean result) {
                 try {
                         long timestamp = System.nanoTime();
                         logs.add(new Log.Entry(method, key, result, timestamp));

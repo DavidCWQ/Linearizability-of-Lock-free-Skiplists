@@ -54,10 +54,10 @@ Source file:
 > > Indeed, there should be 6 linearization points (LP), but they shouldn't be around any line of code.
 > 
 > > - `add()`: The LP of a successful `add()` is at the first CAS operation (node linked at bottom level).
-> > The LP of an unsuccessful `add()` is exactly when `find()` returns `true` (already added).
-> > - `remove()`: The LP of a successful `remove()` is at the CAS operation where `iMarkedIt` returns true.
-> > The LP of an unsuccessful `remove()` is at the CAS operation where `iMarkedIt` returns false, 
-> > or exactly at the point that `find()` returns false (already removed).
+> > The LP of an unsuccessful `add()` is exactly when `find()` set `curr` at bottom level list that causes it to return `true` (already added).
+> > - `remove()`: The LP of a successful `remove()` is at the CAS operation where `iMarkedIt` returns `true`.
+> > The LP of an unsuccessful `remove()` is at the CAS operation where `iMarkedIt` returns `false`, 
+> > or exactly at the point that `find()` set `curr` at bottom level list that causes it to return `false` (already removed).
 > > - `contains()`: The LP is at two lines of code `curr = pred.next[level].getReference();` when `curr` is set.
 > 
 > > Instead, they should be exactly on the CAS or at the moment when `curr` is changed.
@@ -70,7 +70,7 @@ Source file:
 
 > `Log.validate` is implemented with the help of `HashSet`.
 
-> The implementation is 100% correct (Approved by TA).
+> The `Log.validate` implementation is 100% correct (Approved by TA).
 
 ## 2.3. Locked time sampling
 
