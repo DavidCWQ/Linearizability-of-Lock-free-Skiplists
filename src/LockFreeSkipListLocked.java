@@ -130,7 +130,7 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                                 logAction(Log.Method.REMOVE, x.hashCode(), true);
                                         }
                                         else if (marked[0]){
-                                                logAction(Log.Method.REMOVE, x.hashCode(), false);
+                                                logAction(Log.Method.FAKE_REMOVE, x.hashCode(), false);
                                         }
                                         else {
                                                 logActionStop();

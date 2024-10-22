@@ -88,6 +88,9 @@ Source file:
 - `src/Main.java`
 - `src/LockFreeSkipListLocalLog.java`
 
+> The absence of locks means reduced contention and improved throughput.
+> However, it brings some trade-offs in accuracy, particularly in the ordering of timestamps
+> due to the lack of precise synchronization between threads.
 
 ## 2.5. Lock-free Time Sampling with Global Log
 
