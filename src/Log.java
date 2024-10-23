@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Comparator;
@@ -15,8 +16,14 @@ public class Log {
             int discrepancyCount = 0;
             HashSet<Integer> referenceSet = new HashSet<>();
 
+            // Filter out entries with the method EMPTY
+            log = removeEmptyEntries(log);
+
             // Sort the log based on the timestamp to order operations chronologically.
             Arrays.sort(log, Comparator.comparingLong(entry -> entry.timestamp));
+
+            // Apply the FAKE_REMOVE filter to adjust the method and timestamps.
+            adjustFakeRemove(log);
 
             // Iterate through each log entry and replay the operations on the HashSet.
             for (Log.Entry entry : log) {
@@ -35,6 +42,37 @@ public class Log {
 
             // Return the total number of discrepancies found & total logCounts
             return new int[]{discrepancyCount, log.length};
+        }
+
+        // Function to remove entries with method EMPTY
+        private static Log.Entry[] removeEmptyEntries(Log.Entry[] log) {
+            ArrayList<Log.Entry> filteredLog = new ArrayList<>();
+            for (Log.Entry entry : log) {
+                if (entry.method != Method.EMPTY) {
+                    filteredLog.add(entry);
+                }
+            }
+            return filteredLog.toArray(new Log.Entry[0]);
+        }
+
+        // Function to change FAKE_REMOVE and adjust their timestamps.
+        private static void adjustFakeRemove(Log.Entry[] log) {
+            long lastRemoveTimestamp = Long.MIN_VALUE; // Track the last REMOVE timestamp
+
+            for (Log.Entry entry : log) {
+                if (entry.method == Method.REMOVE) {
+                    // Update the last REMOVE timestamp.
+                    lastRemoveTimestamp = entry.timestamp;
+                } else if (entry.method == Method.FAKE_REMOVE) {
+                    // Change FAKE_REMOVE to REMOVE.
+                    entry.method = Method.REMOVE;
+
+                    // Set timestamp to 1 nanosecond after the last REMOVE timestamp.
+                    if (lastRemoveTimestamp != Long.MIN_VALUE) {
+                        entry.timestamp = lastRemoveTimestamp + 1;
+                    }
+                }
+            }
         }
 
         // Log entry for linearization point.
