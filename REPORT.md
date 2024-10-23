@@ -82,6 +82,13 @@ Source file:
 > especially as the number of threads increases. 
 > The lock contention causes performance to degrade in multithreading scenarios.
 
+> One possible solution is to create a list and record the assignment time of 'curr' within the lock, 
+> then the latest one will be the correct linearization point in `find()`.
+
+> For linearization point in `remove()`, create a fake_remove enum and then substitute it with the most recent remove.
+
+> For simplicity, this is implemented in lock-free version only.
+
 ## 2.4. Lock-free time sampling with local log
 
 Source file:
