@@ -222,11 +222,11 @@ retry:
 
         // Helper method to log actions
         private void logAction(Log.Method method, int key, boolean result) {
+                long timestamp = System.nanoTime();
                 long threadId = Thread.currentThread().getId();
                 threadLogs.putIfAbsent(threadId, new ArrayList<>());
+                // The independent list by threadId for logging.
                 List<Log.Entry> localLog = threadLogs.get(threadId);
-                // An independent list for logging.
-                long timestamp = System.nanoTime();
                 localLog.add(new Log.Entry(method, key, result, timestamp));
         }
 }
