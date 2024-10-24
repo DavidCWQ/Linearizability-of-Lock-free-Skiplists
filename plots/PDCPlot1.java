@@ -11,7 +11,8 @@ public class PDCPlot1 { // Thread vs Execution Time
 
     public static void main(String[] args) {
         // Number of threads to test
-        List<Integer> threadCounts = Arrays.asList(1, 2, 4, 8, 16, 32, 64, 96);
+        // List<Integer> threadCounts = Arrays.asList(1, 2, 4, 8, 16, 32, 64, 96);
+        List<Integer> threadCounts = Arrays.asList(1, 2, 4, 8, 16, 32, 48);
 
         // Distribution parameters: 10% add, 10% remove, 80% contains
         int[] unbalancedOps = {1, 1, 8};
@@ -27,8 +28,8 @@ public class PDCPlot1 { // Thread vs Execution Time
         int maxValue = 100000;
 
         // Warm-up and measurement rounds
-        int warmups = 10;
-        int measurements = 30;
+        int warmups = 5;
+        int measurements = 10;
 
         // Results storage
         List<Double> unbalancedTimes = new ArrayList<>();

@@ -11,7 +11,8 @@ public class PDCPlot2 { // Thread vs Avg Accuracy
 
     public static void main(String[] args) {
         // Number of threads to test
-        List<Integer> threadCounts = Arrays.asList(1, 2, 4, 8, 16, 32, 64, 96);
+        // List<Integer> threadCounts = Arrays.asList(1, 2, 4, 8, 16, 32, 64, 96);
+        List<Integer> threadCounts = Arrays.asList(1, 2, 4, 8, 16, 32, 48);
 
         // Distribution parameters: 10% add, 10% remove, 80% contains
         int[] unbalancedOps = {1, 1, 8};
@@ -19,7 +20,7 @@ public class PDCPlot2 { // Thread vs Avg Accuracy
         int[] balancedOps = {1, 1, 0};
 
         // Number of operations per thread
-        int opsPerThread = 1000000;
+        int opsPerThread = 10000;
 
         // Distribution to sample values
         String distribution = "Uniform";
@@ -27,8 +28,8 @@ public class PDCPlot2 { // Thread vs Avg Accuracy
         int maxValue = 100000;
 
         // Warm-up and measurement rounds
-        int warmups = 10;
-        int measurements = 30;
+        int warmups = 5;
+        int measurements = 10;
 
         // Results storage
         List<Double> unbalancedAccuracy = new ArrayList<>();

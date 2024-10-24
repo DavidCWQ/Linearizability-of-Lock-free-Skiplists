@@ -87,6 +87,8 @@ Source file:
 
 > For linearization point in `remove()`, create a fake_remove enum and then substitute it with the most recent remove.
 
+![](plots/plot3_LP_remove.png)
+
 > For simplicity, this is implemented in lock-free version only.
 
 ## 2.4. Lock-free time sampling with local log
@@ -124,13 +126,13 @@ Source file:
 
 ![](plots/plot1_LocalLog_Uniform.png)
 
-![](plots/plot2_LocalLog_Uniform.png)
+![](plots/plot2_GlobalLog_Uniform.png)
 
 ![](plots/plot1_LocalLog_Normal.png)
 
-![](plots/plot2_LocalLog_Normal.png)
+![](plots/plot2_GlobalLog_Normal.png)
 
-![](plots/plot1_GlobalLog_Uniform.png)
+![](plots/plot1_LocalLog_Uniform.png)
 
 ![](plots/plot2_GlobalLog_Uniform.png)
 
