@@ -20,7 +20,7 @@ public class PDCPlot2 { // Thread vs Avg Accuracy
         int[] balancedOps = {1, 1, 0};
 
         // Number of operations per thread
-        int opsPerThread = 10000;
+        int opsPerThread = 1000000;
 
         // Distribution to sample values
         String distribution = "Uniform";
