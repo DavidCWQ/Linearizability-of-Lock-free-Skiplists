@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Comparator;
+import java.util.*;
 
 public class Log {
         private Log() {
@@ -57,19 +54,25 @@ public class Log {
 
         // Function to change FAKE_REMOVE and adjust their timestamps.
         private static void adjustFakeRemove(Log.Entry[] log) {
-            long lastRemoveTimestamp = Long.MIN_VALUE; // Track the last REMOVE timestamp
+            // Track the last REMOVE timestamp for each element.
+            HashMap<Integer, Long> lastRemoveTimestamps = new HashMap<>();
 
             for (Log.Entry entry : log) {
                 if (entry.method == Method.REMOVE) {
-                    // Update the last REMOVE timestamp.
-                    lastRemoveTimestamp = entry.timestamp;
+                    // Record the last REMOVE timestamp for the specific element (entry.arg).
+                    lastRemoveTimestamps.put(entry.arg, entry.timestamp);
                 } else if (entry.method == Method.FAKE_REMOVE) {
-                    // Change FAKE_REMOVE to REMOVE.
-                    entry.method = Method.REMOVE;
+                    // Check if there was a previous REMOVE for the SAME element.
+                    Long lastTimestamp = lastRemoveTimestamps.get(entry.arg);
 
-                    // Set timestamp to 1 nanosecond after the last REMOVE timestamp.
-                    if (lastRemoveTimestamp != Long.MIN_VALUE) {
-                        entry.timestamp = lastRemoveTimestamp + 1;
+                    // Only adjust the timestamp if there was a previous REMOVE for this element.
+                    if (lastTimestamp != null) {
+                        entry.method = Method.REMOVE;
+                        entry.timestamp = lastTimestamp + 1;
+                    }
+                    // Unexpected Error (Fake remove before real remove)
+                    else {
+                        throw new RuntimeException("Atomic Action Error");
                     }
                 }
             }
