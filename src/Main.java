@@ -61,6 +61,7 @@ public class Main {
                                 System.err.println("Warmup time: " + time);
                                 System.err.println("Warmup discrepancy: " + discrepancy[0]);
                         }
+                        set.reset(); // Major Bug Fixed (10.25)
                 }
 
                 double totalTime = 0, totalDiff = 0, totalRate = 0;
@@ -75,6 +76,7 @@ public class Main {
                         totalTime += (double) time;
                         totalDiff += discrepancy[0];
                         totalRate += 1.0 - (double) discrepancy[0] /discrepancy[1]; // Accuracy rate
+                        set.reset(); // Major Bug Fixed (10.25)
                 }
 
                 double avgTime = totalTime/measurements, avgDiff = totalDiff/measurements;

@@ -111,6 +111,9 @@ Source file:
 > However, it brings some trade-offs in accuracy, particularly in the ordering of timestamps 
 > due to the lack of precise synchronization between threads.
 
+> 10.25 Update, Major Bug Fixed:
+> The LockFreeSkipList is now reset after each iteration. The discrepancy drops dramatically after that.
+
 ## 2.5.Extra
 
 Source file:
@@ -125,17 +128,25 @@ Source file:
 - `plots/PDCPlot2.java` (Run on PDC)
 
 ![](plots/plot1_LocalLog_Uniform.png)
+> plot1_LocalLog_Uniform.png
 
-![](plots/plot2_GlobalLog_Uniform.png)
+![](plots/plot2_LocalLog_Uniform.png)
+> plot2_LocalLog_Uniform.png
 
 ![](plots/plot1_LocalLog_Normal.png)
+> plot1_LocalLog_Normal.png
 
-![](plots/plot2_GlobalLog_Normal.png)
+![](plots/plot2_LocalLog_Normal.png)
+> plot2_LocalLog_Normal.png
 
-![](plots/plot1_LocalLog_Uniform.png)
+![](plots/plot1_GlobalLog_Uniform.png)
+> plot1_GlobalLog_Uniform.png
 
 ![](plots/plot2_GlobalLog_Uniform.png)
+> plot2_GlobalLog_Uniform.png
 
 ![](plots/plot1_GlobalLog_Normal.png)
+> plot1_GlobalLog_Normal.png
 
 ![](plots/plot2_GlobalLog_Normal.png)
+> plot2_GlobalLog_Normal.png

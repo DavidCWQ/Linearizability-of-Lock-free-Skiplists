@@ -83,7 +83,7 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                         logActionStop(); continue;
                                 }
                                 else {
-                                        logAction(Log.Method.ADD, x.hashCode(),true);
+                                        logAction(Log.Method.ADD, x.hashCode(),true, -1);
                                 }
 
                                 for (int level = bottomLevel + 1; level <= topLevel; level++) {
@@ -127,10 +127,10 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                         logActionStart();
                                         boolean iMarkedIt = nodeToRemove.next[bottomLevel].compareAndSet(succ, succ, false, true);
                                         if (iMarkedIt) {
-                                                logAction(Log.Method.REMOVE, x.hashCode(), true);
+                                                logAction(Log.Method.REMOVE, x.hashCode(), true, -1);
                                         }
                                         else if (marked[0]){
-                                                logAction(Log.Method.FAKE_REMOVE, x.hashCode(), false);
+                                                logAction(Log.Method.FAKE_REMOVE, x.hashCode(), false, -1);
                                         }
                                         else {
                                                 logActionStop();
@@ -154,12 +154,21 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                 Node<T> pred = head;
                 Node<T> curr = null;
                 Node<T> succ = null;
+                List<Long> time = new ArrayList<>(); // The latest timestamp = LP
                 for (int level = MAX_LEVEL; level >= bottomLevel; level--) {
+                        // TODO: Log around the linearization point of contains
+                        logActionStart();
                         curr = pred.next[level].getReference(); // Can be LP point
+                        time.add(System.nanoTime());
+                        logActionStop();
                         while (true) {
                                 succ = curr.next[level].get(marked);
                                 while (marked[0]) {
+                                        // TODO: Log around the linearization point of contains
+                                        logActionStart();
                                         curr = succ; // Can be LP point
+                                        time.add(System.nanoTime());
+                                        logActionStop();
                                         succ = curr.next[level].get(marked);
                                 }
                                 if (curr.value != null && x.compareTo(curr.value) < 0) {
@@ -170,10 +179,9 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                                 }
                         }
                 }
-                // TODO: Lock around the linearization point of contains
                 logActionStart();
                 boolean result = curr.value != null && x.compareTo(curr.value) == 0;
-                logAction(Log.Method.CONTAINS, x.hashCode(), result);
+                logAction(Log.Method.CONTAINS, x.hashCode(), result, time.get(time.size()-1));
                 return result;
         }
 
@@ -184,19 +192,26 @@ public class LockFreeSkipListLocked<T extends Comparable<T>> implements LockFree
                 Node<T> pred = null;
                 Node<T> curr = null;
                 Node<T> succ = null;
+                List<Long> time = new ArrayList<>(); // The latest timestamp = LP
 retry:
                 while (true) {
                         pred = head;
                         for (int level = MAX_LEVEL; level >= bottomLevel; level--) {
-                                // TODO: Lock around the linearization point
+                                // TODO: Log around the unsuccessful LP of add or remove
+                                logActionStart();
                                 curr = pred.next[level].getReference(); // Can be LP point
+                                time.add(System.nanoTime());
+                                logActionStop();
                                 while (true) {
                                         succ = curr.next[level].get(marked);
                                         while (marked[0]) {
                                                 snip = pred.next[level].compareAndSet(curr, succ, false, false);
                                                 if (!snip) continue retry;
-                                                // TODO: Lock around the linearization point
+                                                // TODO: Log around the unsuccessful LP of add or remove
+                                                logActionStart();
                                                 curr = succ; // Can be LP point
+                                                time.add(System.nanoTime());
+                                                logActionStop();
                                                 succ = curr.next[level].get(marked);
                                         }
                                         if (curr.value != null && x.compareTo(curr.value) < 0) {
@@ -207,31 +222,22 @@ retry:
                                         }
                                 }
 
-                                boolean isFound = curr.value != null && x.compareTo(curr.value) == 0;
-
-                                if (level == bottomLevel) {
-                                    if (isFound && method == Log.Method.ADD) {
-                                        logActionStart();
-                                        preds[level] = pred;
-                                        succs[level] = curr;
-                                        // TODO: Lock around the unsuccessful LP of add
-                                        logAction(Log.Method.ADD, x.hashCode(), false);
-                                        return true;
-                                    }
-                                    else if (!isFound && method == Log.Method.REMOVE) {
-                                        logActionStart();
-                                        preds[level] = pred;
-                                        succs[level] = curr;
-                                        // TODO: Lock around the unsuccessful LP of remove
-                                        logAction(Log.Method.REMOVE, x.hashCode(), false);
-                                        return false;
-                                    }
-                                }
-
                                 preds[level] = pred;
                                 succs[level] = curr;
                         }
-                        return curr.value != null && x.compareTo(curr.value) == 0;
+                        logActionStart();
+                        boolean isFound = curr.value != null && x.compareTo(curr.value) == 0;
+
+                        if (isFound && method == Log.Method.ADD) {
+                                logAction(Log.Method.ADD, x.hashCode(), false, time.get(time.size() - 1));
+                        }
+                        else if (!isFound && method == Log.Method.REMOVE) {
+                                logAction(Log.Method.REMOVE, x.hashCode(), false, time.get(time.size() - 1));
+                        }
+                        else {
+                                logActionStop();
+                        }
+                        return isFound;
                 }
         }
 
@@ -259,17 +265,28 @@ retry:
         }
 
         // Helper method to log actions
+
+        /**
+         * lock.lock()
+         */
         private void logActionStart() {
                 lock.lock();
         }
 
+        /**
+         * lock.unlock()
+         */
         private void logActionStop() {
                 lock.unlock();
         }
 
-        private void logAction(Log.Method method, int key, boolean result) {
+        /**
+         * Must call `logActionStart()` before `logAction()`.
+         * This method logs the timestamp and then lock.unlock().
+         */
+        private void logAction(Log.Method method, int key, boolean result, long timestamp) {
                 try {
-                        long timestamp = System.nanoTime();
+                        if (timestamp <= 0.0) timestamp = System.nanoTime();
                         logs.add(new Log.Entry(method, key, result, timestamp));
                 } finally {
                         lock.unlock();
